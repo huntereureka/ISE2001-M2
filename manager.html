@@ -68,24 +68,9 @@
                 <th>Load</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="workloadTableBody">
               <tr>
-                <td>Staff A</td>
-                <td>32</td>
-                <td>5</td>
-                <td><span class="status-pill">Balanced</span></td>
-              </tr>
-              <tr>
-                <td>Staff B</td>
-                <td>40</td>
-                <td>6</td>
-                <td><span class="status-pill status-pill--alert">High</span></td>
-              </tr>
-              <tr>
-                <td>Staff C</td>
-                <td>18</td>
-                <td>2</td>
-                <td><span class="status-pill status-pill--calm">Low</span></td>
+                <td colspan="4">Loading workload data...</td>
               </tr>
             </tbody>
           </table>
@@ -100,16 +85,15 @@
           <div class="field-row">
             <div class="field">
               <div class="label">Mode</div>
-              <select>
-                <option>Create New Job</option>
-                <option>Edit Existing Job</option>
+              <select id="jobModeSelect">
+                <option value="create">Create New Job</option>
+                <option value="edit">Edit Existing Job</option>
               </select>
             </div>
             <div class="field">
               <div class="label">Select Job (when editing)</div>
-              <select>
-                <option>Job #123 &mdash; Site Inspection</option>
-                <option>Job #124 &mdash; Maintenance</option>
+              <select id="jobSelect" disabled>
+                <option value="">Select a job</option>
               </select>
             </div>
           </div>
@@ -117,34 +101,34 @@
           <div class="field-row">
             <div class="field">
               <div class="label">Job Title</div>
-              <input type="text" placeholder="e.g. Evening Shift" />
+              <input id="jobTitleInput" type="text" placeholder="e.g. Evening Shift" />
             </div>
             <div class="field">
               <div class="label">Date</div>
-              <input type="text" placeholder="2025-09-15" />
+              <input id="jobDateInput" type="text" placeholder="2025-09-15" />
             </div>
           </div>
 
           <div class="field-row">
             <div class="field">
               <div class="label">Duration (hours)</div>
-              <input type="text" placeholder="4" />
+              <input id="jobDurationInput" type="text" placeholder="4" />
             </div>
             <div class="field">
               <div class="label">Location</div>
-              <input type="text" placeholder="Location / Site" />
+              <input id="jobLocationInput" type="text" placeholder="Location / Site" />
             </div>
           </div>
 
           <div class="field-group">
             <span class="label">Description</span>
-            <textarea placeholder="Short description of the job..."></textarea>
+            <textarea id="jobDescriptionInput" placeholder="Short description of the job..."></textarea>
           </div>
 
           <div class="button-row">
-            <button class="btn">Submit Job</button>
-            <button class="btn btn-secondary">Cancel</button>
-            <button class="btn btn-danger">Delete Job</button>
+            <button class="btn" id="jobSubmitBtn">Submit Job</button>
+            <button class="btn btn-secondary" id="jobCancelBtn">Cancel</button>
+            <button class="btn btn-danger" id="jobDeleteBtn">Delete Job</button>
           </div>
         </div>
 
@@ -155,18 +139,14 @@
           </div>
 
           <div class="section-label">Unassigned Jobs</div>
-          <ul class="list-placeholder">
-            <li>Job #123 &mdash; Evening shift, 4h</li>
-            <li>Job #126 &mdash; Day patrol, 8h</li>
-            <li>Job #130 &mdash; Event coverage, 6h</li>
+          <ul class="list-placeholder" id="unassignedJobs">
+            <li>Loading jobs...</li>
           </ul>
 
           <div class="field-group">
             <span class="label">Select Job</span>
-            <select>
-              <option>Job #123 &mdash; Evening shift</option>
-              <option>Job #126 &mdash; Day patrol</option>
-              <option>Job #130 &mdash; Event coverage</option>
+            <select id="allocationJobSelect">
+              <option value="">Select a job</option>
             </select>
           </div>
 
@@ -174,61 +154,44 @@
           <div class="field-row">
             <div class="field">
               <div class="label">Staff 1</div>
-              <select>
-                <option>Staff A</option>
-                <option>Staff B</option>
+              <select class="staff-compare" data-summary="0" id="staffCompare1">
+                <option value="">Select staff</option>
               </select>
             </div>
             <div class="field">
               <div class="label">Staff 2</div>
-              <select>
-                <option>Staff C</option>
-                <option>Staff D</option>
+              <select class="staff-compare" data-summary="1" id="staffCompare2">
+                <option value="">Select staff</option>
               </select>
             </div>
             <div class="field">
               <div class="label">Staff 3</div>
-              <select>
-                <option>Staff E</option>
-                <option>Staff F</option>
+              <select class="staff-compare" data-summary="2" id="staffCompare3">
+                <option value="">Select staff</option>
               </select>
             </div>
           </div>
 
-          <div class="summary-box">
-            <strong>Staff A</strong><br />
-            - Weekly hours: 32 / 44<br />
-            - Preferences: Evening shifts, outdoor<br />
-            - Location (selected date): Site Alpha<br />
-            - Availability: Mon, Wed, Fri
+          <div class="summary-box staff-summary" data-summary="0">
+            Select a staff member to view availability details.
           </div>
-          <div class="summary-box">
-            <strong>Staff C</strong><br />
-            - Weekly hours: 18 / 44<br />
-            - Preferences: Day shifts<br />
-            - Location: Flexible<br />
-            - Availability: Tue, Thu, Sat
+          <div class="summary-box staff-summary" data-summary="1">
+            Select a staff member to view availability details.
           </div>
-          <div class="summary-box">
-            <strong>Staff E</strong><br />
-            - Weekly hours: 12 / 44<br />
-            - Preferences: Events<br />
-            - Location: City Centre<br />
-            - Availability: Fri, Sat, Sun
+          <div class="summary-box staff-summary" data-summary="2">
+            Select a staff member to view availability details.
           </div>
 
           <div class="field-group">
             <span class="label">Assign to</span>
-            <select>
-              <option>Staff C (recommended)</option>
-              <option>Staff A</option>
-              <option>Staff E</option>
+            <select id="allocateStaffSelect">
+              <option value="">Select staff</option>
             </select>
           </div>
 
           <div class="button-row">
-            <button class="btn">Allocate Job</button>
-            <button class="btn btn-secondary">Skip Availability Check</button>
+            <button class="btn" id="allocateJobBtn">Allocate Job</button>
+            <button class="btn btn-secondary" id="skipAvailabilityBtn">Skip Availability Check</button>
           </div>
         </div>
       </div>

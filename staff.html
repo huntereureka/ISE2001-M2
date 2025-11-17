@@ -58,20 +58,9 @@
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="staffAssignmentsBody">
                 <tr>
-                  <td>Mon</td>
-                  <td>Site A Patrol</td>
-                  <td>8</td>
-                  <td><span class="status-pill">Assigned</span></td>
-                  <td><span class="btn btn-secondary">View / Reject</span></td>
-                </tr>
-                <tr>
-                  <td>Wed</td>
-                  <td>Site B Evening Shift</td>
-                  <td>4</td>
-                  <td><span class="status-pill">Assigned</span></td>
-                  <td><span class="btn btn-secondary">View / Reject</span></td>
+                  <td colspan="5">Loading assignments...</td>
                 </tr>
               </tbody>
             </table>
@@ -86,7 +75,7 @@
             <div class="field-row">
               <div class="field">
                 <div class="label">Month</div>
-                <select>
+                <select id="monthSelect">
                   <option>September</option>
                   <option>October</option>
                   <option>November</option>
@@ -94,15 +83,12 @@
               </div>
               <div class="field">
                 <div class="label">Total Assigned Hours</div>
-                <input type="text" value="120 hrs" />
+                <input id="monthlyTotalInput" type="text" value="0 hrs" readonly />
               </div>
             </div>
 
-            <div class="summary-box">
-              - Week 1: 32 hrs<br />
-              - Week 2: 28 hrs<br />
-              - Week 3: 30 hrs<br />
-              - Week 4: 30 hrs
+            <div class="summary-box" id="monthlyBreakdown">
+              Loading monthly summary...
             </div>
           </div>
         </div>
@@ -114,65 +100,71 @@
               <div class="panel-meta">Next 5 weeks</div>
             </div>
 
-            <div class="field-row">
-              <div class="field">
-                <div class="label">Select Week</div>
-                <select>
-                  <option>Week of 01-07</option>
-                  <option>Week of 08-14</option>
-                  <option>Week of 15-21</option>
-                </select>
+            <form id="availabilityForm">
+              <div class="field-row">
+                <div class="field">
+                  <div class="label">Select Week</div>
+                  <select id="availabilityWeek">
+                    <option>Week of 01-07</option>
+                    <option>Week of 08-14</option>
+                    <option>Week of 15-21</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="label">Action</div>
+                  <select id="availabilityMode">
+                    <option>Add Availability</option>
+                    <option>Edit Availability</option>
+                    <option>Indicate Job Preference</option>
+                  </select>
+                </div>
               </div>
-              <div class="field">
-                <div class="label">Action</div>
-                <select>
-                  <option>Add Availability</option>
-                  <option>Edit Availability</option>
-                  <option>Indicate Job Preference</option>
-                </select>
+
+              <div class="section-label">Availability Details</div>
+              <div class="field-row">
+                <div class="field">
+                  <div class="label">Day</div>
+                  <select id="availabilityDay">
+                    <option>Monday</option>
+                    <option>Tuesday</option>
+                    <option>Wednesday</option>
+                    <option>Thursday</option>
+                    <option>Friday</option>
+                    <option>Saturday</option>
+                    <option>Sunday</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="label">Start Time</div>
+                  <input id="availabilityStart" type="text" placeholder="09:00" />
+                </div>
+                <div class="field">
+                  <div class="label">End Time</div>
+                  <input id="availabilityEnd" type="text" placeholder="17:00" />
+                </div>
               </div>
-            </div>
 
-            <div class="section-label">Availability Details</div>
-            <div class="field-row">
-              <div class="field">
-                <div class="label">Day</div>
-                <select>
-                  <option>Monday</option>
-                  <option>Tuesday</option>
-                  <option>Wednesday</option>
-                </select>
+              <div class="field-group">
+                <span class="label">Additional Notes</span>
+                <textarea id="availabilityNotes" placeholder="Optional notes regarding availability..."></textarea>
               </div>
-              <div class="field">
-                <div class="label">Start Time</div>
-                <input type="text" placeholder="09:00" />
+
+              <div class="section-label">Job Preferences</div>
+              <div class="field-group">
+                <span class="label">Preferred Job Types</span>
+                <textarea id="preferenceTypes" placeholder="e.g. Night shifts, events, indoors..."></textarea>
               </div>
-              <div class="field">
-                <div class="label">End Time</div>
-                <input type="text" placeholder="17:00" />
+
+              <div class="field-group">
+                <span class="label">Preferred Locations</span>
+                <input id="preferenceLocations" type="text" placeholder="e.g. City Centre, Site B" />
               </div>
-            </div>
 
-            <div class="field-group">
-              <span class="label">Additional Notes</span>
-              <textarea placeholder="Optional notes regarding availability..."></textarea>
-            </div>
-
-            <div class="section-label">Job Preferences</div>
-            <div class="field-group">
-              <span class="label">Preferred Job Types</span>
-              <textarea placeholder="e.g. Night shifts, events, indoors..."></textarea>
-            </div>
-
-            <div class="field-group">
-              <span class="label">Preferred Locations</span>
-              <input type="text" placeholder="e.g. City Centre, Site B" />
-            </div>
-
-            <div class="button-row">
-              <button class="btn">Submit</button>
-              <button class="btn btn-secondary">Cancel</button>
-            </div>
+              <div class="button-row">
+                <button type="submit" class="btn">Submit</button>
+                <button type="button" class="btn btn-secondary" id="availabilityCancelBtn">Clear</button>
+              </div>
+            </form>
           </div>
 
           <div class="panel">
@@ -180,36 +172,32 @@
               <div class="panel-title">Reject Job Assignment</div>
               <div class="panel-meta">Discuss with manager first</div>
             </div>
+            <form id="rejectForm">
+              <div class="field-group">
+                <span class="label">Select Assignment</span>
+                <select id="rejectJobSelect">
+                  <option value="">Select a job</option>
+                </select>
+              </div>
 
-            <div class="field-group">
-              <span class="label">Select Assignment</span>
-              <select>
-                <option>Job #123 &mdash; Site A Patrol (Mon)</option>
-                <option>Job #124 &mdash; Site B Evening (Wed)</option>
-              </select>
-            </div>
+              <div class="summary-box" id="rejectJobDetails">
+                Select a job to view its details.
+              </div>
 
-            <div class="summary-box">
-              <strong>Selected Job Details</strong><br />
-              - Date/Time: Mon, 09:00-17:00<br />
-              - Location: Site A<br />
-              - Description: Day patrol and reporting<br />
-              - Status: Assigned
-            </div>
+              <div class="field-group">
+                <span class="label">Reason (optional)</span>
+                <textarea id="rejectReasonInput" placeholder="Brief reason for rejecting assignment..."></textarea>
+              </div>
 
-            <div class="field-group">
-              <span class="label">Reason (optional)</span>
-              <textarea placeholder="Brief reason for rejecting assignment..."></textarea>
-            </div>
+              <div class="button-row">
+                <button type="submit" class="btn btn-danger">Reject Assignment</button>
+                <button type="button" class="btn btn-secondary" id="rejectCancelBtn">Cancel</button>
+              </div>
 
-            <div class="button-row">
-              <button class="btn btn-danger">Reject Assignment</button>
-              <button class="btn btn-secondary">Cancel</button>
-            </div>
-
-            <div class="summary-box">
-              Confirm you have already spoken with your manager before submitting this request.
-            </div>
+              <div class="summary-box">
+                Confirm you have already spoken with your manager before submitting this request.
+              </div>
+            </form>
           </div>
         </div>
       </div>
