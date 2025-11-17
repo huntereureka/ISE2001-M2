@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-role="login">
+  <div class="app-shell">
+    <header>
+      <div class="logo-text" data-i18n="appTitle">Workload Planning System</div>
+      <div class="header-right">
+        <div class="lang-select">
+          <span class="label" data-i18n="languageLabel">Website Language</span>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="zh">Chinese</option>
+            <option value="ms">Bahasa Melayu</option>
+            <option value="ta">Tamil</option>
+          </select>
+          <span class="hint" data-i18n="languageHint">
+            Select a language to update the interface text.
+          </span>
+        </div>
+        <div>
+          <div class="tag" id="roleTag" data-i18n="roleTagLogin">Logged out / Login view</div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="top-nav">
+      <a href="login.html" class="top-nav-link top-nav-link--active">Login</a>
+      <a href="manager.html" class="top-nav-link">Manager</a>
+      <a href="staff.html" class="top-nav-link">Staff</a>
+      <a href="admin.html" class="top-nav-link">Admin</a>
+    </nav>
+
+    <section class="page">
+      <div class="page-label">Page</div>
+      <h1 data-i18n="loginHeading">Login</h1>
+
+      <div class="two-col-stack">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Sign in</div>
+            <div class="panel-meta">Demo credentials: staff, manager, admin</div>
+          </div>
+
+          <form id="loginForm">
+            <div class="field-group">
+              <span class="label">Username</span>
+              <input
+                type="text"
+                name="username"
+                placeholder="e.g. staff"
+                autocomplete="username"
+                required
+              />
+            </div>
+            <div class="field-group">
+              <span class="label">Password</span>
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter password"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+
+            <div class="button-row">
+              <button type="submit" class="btn">Log In</button>
+            </div>
+
+            <div class="form-message" id="loginMessage" role="alert"></div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Language Preview</div>
+            <div class="panel-meta">Applies immediately</div>
+          </div>
+          <p>
+            Use the menu in the header to switch languages before or after signing in. The sample card
+            below updates with the currently selected language.
+          </p>
+          <div class="summary-box">
+            <strong data-i18n="languageLabel">Website Language</strong><br />
+            <span data-i18n="languageHint">Select a language to update the interface text.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

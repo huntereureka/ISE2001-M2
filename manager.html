@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manager Landing</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-role="manager">
+  <div class="app-shell">
+    <header>
+      <div class="logo-text" data-i18n="appTitle">Workload Planning System</div>
+      <div class="header-right">
+        <div class="lang-select">
+          <span class="label" data-i18n="languageLabel">Website Language</span>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="zh">Chinese</option>
+            <option value="ms">Bahasa Melayu</option>
+            <option value="ta">Tamil</option>
+          </select>
+          <span class="hint" data-i18n="languageHint">
+            Select a language to update the interface text.
+          </span>
+        </div>
+        <div class="session-status">
+          <div class="tag" id="roleTag" data-i18n="roleTagManager">Logged in as Manager</div>
+          <button class="btn btn-secondary" id="logoutButton">Log Out</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="top-nav">
+      <a href="login.html" class="top-nav-link">Login</a>
+      <a href="manager.html" class="top-nav-link top-nav-link--active">Manager</a>
+      <a href="staff.html" class="top-nav-link">Staff</a>
+      <a href="admin.html" class="top-nav-link">Admin</a>
+    </nav>
+
+    <section class="page">
+      <div class="page-label">Page</div>
+      <h1>Manager Landing</h1>
+
+      <div class="page-grid-3">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Weekly Staff Workload</div>
+              <div class="panel-meta">Overview of assigned hours</div>
+            </div>
+            <div class="tag">This Week</div>
+          </div>
+
+          <div class="field-group">
+            <span class="label">Select Week</span>
+            <select>
+              <option>This Week</option>
+              <option>Next Week</option>
+              <option>Previous Week</option>
+            </select>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Staff</th>
+                <th>Total Hrs</th>
+                <th># Jobs</th>
+                <th>Load</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Staff A</td>
+                <td>32</td>
+                <td>5</td>
+                <td><span class="status-pill">Balanced</span></td>
+              </tr>
+              <tr>
+                <td>Staff B</td>
+                <td>40</td>
+                <td>6</td>
+                <td><span class="status-pill status-pill--alert">High</span></td>
+              </tr>
+              <tr>
+                <td>Staff C</td>
+                <td>18</td>
+                <td>2</td>
+                <td><span class="status-pill status-pill--calm">Low</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Job Form</div>
+            <div class="panel-meta">Create or edit a job</div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <div class="label">Mode</div>
+              <select>
+                <option>Create New Job</option>
+                <option>Edit Existing Job</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="label">Select Job (when editing)</div>
+              <select>
+                <option>Job #123 &mdash; Site Inspection</option>
+                <option>Job #124 &mdash; Maintenance</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <div class="label">Job Title</div>
+              <input type="text" placeholder="e.g. Evening Shift" />
+            </div>
+            <div class="field">
+              <div class="label">Date</div>
+              <input type="text" placeholder="2025-09-15" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <div class="label">Duration (hours)</div>
+              <input type="text" placeholder="4" />
+            </div>
+            <div class="field">
+              <div class="label">Location</div>
+              <input type="text" placeholder="Location / Site" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <span class="label">Description</span>
+            <textarea placeholder="Short description of the job..."></textarea>
+          </div>
+
+          <div class="button-row">
+            <button class="btn">Submit Job</button>
+            <button class="btn btn-secondary">Cancel</button>
+            <button class="btn btn-danger">Delete Job</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Job Allocation</div>
+            <div class="panel-meta">Assign staff to open jobs</div>
+          </div>
+
+          <div class="section-label">Unassigned Jobs</div>
+          <ul class="list-placeholder">
+            <li>Job #123 &mdash; Evening shift, 4h</li>
+            <li>Job #126 &mdash; Day patrol, 8h</li>
+            <li>Job #130 &mdash; Event coverage, 6h</li>
+          </ul>
+
+          <div class="field-group">
+            <span class="label">Select Job</span>
+            <select>
+              <option>Job #123 &mdash; Evening shift</option>
+              <option>Job #126 &mdash; Day patrol</option>
+              <option>Job #130 &mdash; Event coverage</option>
+            </select>
+          </div>
+
+          <div class="section-label">Compare Staff</div>
+          <div class="field-row">
+            <div class="field">
+              <div class="label">Staff 1</div>
+              <select>
+                <option>Staff A</option>
+                <option>Staff B</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="label">Staff 2</div>
+              <select>
+                <option>Staff C</option>
+                <option>Staff D</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="label">Staff 3</div>
+              <select>
+                <option>Staff E</option>
+                <option>Staff F</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="summary-box">
+            <strong>Staff A</strong><br />
+            - Weekly hours: 32 / 44<br />
+            - Preferences: Evening shifts, outdoor<br />
+            - Location (selected date): Site Alpha<br />
+            - Availability: Mon, Wed, Fri
+          </div>
+          <div class="summary-box">
+            <strong>Staff C</strong><br />
+            - Weekly hours: 18 / 44<br />
+            - Preferences: Day shifts<br />
+            - Location: Flexible<br />
+            - Availability: Tue, Thu, Sat
+          </div>
+          <div class="summary-box">
+            <strong>Staff E</strong><br />
+            - Weekly hours: 12 / 44<br />
+            - Preferences: Events<br />
+            - Location: City Centre<br />
+            - Availability: Fri, Sat, Sun
+          </div>
+
+          <div class="field-group">
+            <span class="label">Assign to</span>
+            <select>
+              <option>Staff C (recommended)</option>
+              <option>Staff A</option>
+              <option>Staff E</option>
+            </select>
+          </div>
+
+          <div class="button-row">
+            <button class="btn">Allocate Job</button>
+            <button class="btn btn-secondary">Skip Availability Check</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

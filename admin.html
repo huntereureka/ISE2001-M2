@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin User Management</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-role="admin">
+  <div class="app-shell">
+    <header>
+      <div class="logo-text" data-i18n="appTitle">Workload Planning System</div>
+      <div class="header-right">
+        <div class="lang-select">
+          <span class="label" data-i18n="languageLabel">Website Language</span>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="zh">Chinese</option>
+            <option value="ms">Bahasa Melayu</option>
+            <option value="ta">Tamil</option>
+          </select>
+          <span class="hint" data-i18n="languageHint">
+            Select a language to update the interface text.
+          </span>
+        </div>
+        <div class="session-status">
+          <div class="tag" id="roleTag" data-i18n="roleTagAdmin">Logged in as Administrator</div>
+          <button class="btn btn-secondary" id="logoutButton">Log Out</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="top-nav">
+      <a href="login.html" class="top-nav-link">Login</a>
+      <a href="manager.html" class="top-nav-link">Manager</a>
+      <a href="staff.html" class="top-nav-link">Staff</a>
+      <a href="admin.html" class="top-nav-link top-nav-link--active">Admin</a>
+    </nav>
+
+    <section class="page">
+      <div class="page-label">Page</div>
+      <h1>Administrator &mdash; User Management</h1>
+
+      <div class="page-grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Existing Users</div>
+            <div class="panel-meta">Select a user to edit</div>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Department</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Manager 1</td>
+                <td>manager1@example.com</td>
+                <td>Manager</td>
+                <td>Ops</td>
+              </tr>
+              <tr>
+                <td>Staff 1</td>
+                <td>staff1@example.com</td>
+                <td>Staff</td>
+                <td>Ops</td>
+              </tr>
+              <tr>
+                <td>Admin 1</td>
+                <td>admin1@example.com</td>
+                <td>Administrator</td>
+                <td>IT</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">User Form</div>
+            <div class="panel-meta">Add or update details</div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <div class="label">Mode</div>
+              <select>
+                <option>Add New User</option>
+                <option>Edit Selected User</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="label">Status</div>
+              <select>
+                <option>Active</option>
+                <option>Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <div class="label">Name</div>
+              <input type="text" placeholder="Full Name" />
+            </div>
+            <div class="field">
+              <div class="label">Email</div>
+              <input type="text" placeholder="email@example.com" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <div class="label">Role</div>
+              <select>
+                <option>Staff</option>
+                <option>Manager</option>
+                <option>Administrator</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="label">Department</div>
+              <input type="text" placeholder="e.g. Operations" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <span class="label">Notes / Permissions</span>
+            <textarea placeholder="Optional notes about permissions or access..."></textarea>
+          </div>
+
+          <div class="button-row">
+            <button class="btn">Save User</button>
+            <button class="btn btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
