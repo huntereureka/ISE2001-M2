@@ -54,26 +54,12 @@
                 <th>Email</th>
                 <th>Role</th>
                 <th>Department</th>
+                <th>Status</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Manager 1</td>
-                <td>manager1@example.com</td>
-                <td>Manager</td>
-                <td>Ops</td>
-              </tr>
-              <tr>
-                <td>Staff 1</td>
-                <td>staff1@example.com</td>
-                <td>Staff</td>
-                <td>Ops</td>
-              </tr>
-              <tr>
-                <td>Admin 1</td>
-                <td>admin1@example.com</td>
-                <td>Administrator</td>
-                <td>IT</td>
+            <tbody id="userTableBody">
+              <tr class="table-empty">
+                <td colspan="5">Loading users...</td>
               </tr>
             </tbody>
           </table>
@@ -85,58 +71,93 @@
             <div class="panel-meta">Add or update details</div>
           </div>
 
-          <div class="field-row">
-            <div class="field">
-              <div class="label">Mode</div>
-              <select>
-                <option>Add New User</option>
-                <option>Edit Selected User</option>
-              </select>
-            </div>
-            <div class="field">
-              <div class="label">Status</div>
-              <select>
-                <option>Active</option>
-                <option>Inactive</option>
-              </select>
-            </div>
-          </div>
+          <form id="userForm">
+            <input type="hidden" id="userSelectedUsername" />
 
-          <div class="field-row">
-            <div class="field">
-              <div class="label">Name</div>
-              <input type="text" placeholder="Full Name" />
+            <div class="field-row">
+              <div class="field">
+                <div class="label">Mode</div>
+                <input
+                  type="text"
+                  id="userModeLabel"
+                  class="input-readonly"
+                  value="Add new user"
+                  readonly
+                />
+              </div>
+              <div class="field">
+                <div class="label">Status</div>
+                <select id="userStatusSelect">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
             </div>
-            <div class="field">
-              <div class="label">Email</div>
-              <input type="text" placeholder="email@example.com" />
-            </div>
-          </div>
 
-          <div class="field-row">
-            <div class="field">
-              <div class="label">Role</div>
-              <select>
-                <option>Staff</option>
-                <option>Manager</option>
-                <option>Administrator</option>
-              </select>
+            <div class="field-row">
+              <div class="field">
+                <div class="label">Full Name</div>
+                <input type="text" id="userNameInput" placeholder="Full name" />
+              </div>
+              <div class="field">
+                <div class="label">Email</div>
+                <input type="email" id="userEmailInput" placeholder="email@example.com" />
+              </div>
             </div>
-            <div class="field">
-              <div class="label">Department</div>
-              <input type="text" placeholder="e.g. Operations" />
+
+            <div class="field-row">
+              <div class="field">
+                <div class="label">Username</div>
+                <input type="text" id="userUsernameInput" placeholder="login username" />
+              </div>
+              <div class="field">
+                <div class="label">Password</div>
+                <input
+                  type="text"
+                  id="userPasswordInput"
+                  placeholder="required when adding"
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="field-group">
-            <span class="label">Notes / Permissions</span>
-            <textarea placeholder="Optional notes about permissions or access..."></textarea>
-          </div>
+            <div class="field-row">
+              <div class="field">
+                <div class="label">Role</div>
+                <select id="userRoleSelect">
+                  <option value="staff">Staff</option>
+                  <option value="manager">Manager</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+              <div class="field">
+                <div class="label">Department</div>
+                <input type="text" id="userDeptInput" placeholder="e.g. Operations" />
+              </div>
+            </div>
 
-          <div class="button-row">
-            <button class="btn">Save User</button>
-            <button class="btn btn-secondary">Cancel</button>
-          </div>
+            <div class="field-group">
+              <span class="label">Notes / Permissions</span>
+              <textarea
+                id="userNotesInput"
+                placeholder="Optional notes about permissions or access..."
+              ></textarea>
+            </div>
+
+            <div id="userFormStatus" class="form-status" aria-live="polite"></div>
+
+            <div class="button-row">
+              <button class="btn" type="submit" id="userSaveButton">Save User</button>
+              <button class="btn btn-secondary" type="button" id="userCancelButton">
+                Cancel
+              </button>
+              <button class="btn btn-secondary" type="button" id="userNewButton">
+                New User
+              </button>
+              <button class="btn btn-danger" type="button" id="userDeleteButton" disabled>
+                Delete User
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </section>

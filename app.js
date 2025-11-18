@@ -45,7 +45,11 @@ const UI_STRINGS = {
 const DATA_VERSION = "2";
 
 const APP_STATE = {
-  data: null
+  data: null,
+  adminUi: {
+    mode: "add",
+    selectedUsername: null
+  }
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -74,6 +78,10 @@ async function initializeApp() {
 
   if (pageRole === "staff" && sessionUser && sessionUser.role === "staff") {
     setupStaffPage(sessionUser);
+  }
+
+  if (pageRole === "admin" && sessionUser && sessionUser.role === "admin") {
+    setupAdminPage();
   }
 }
 
@@ -1214,6 +1222,465 @@ function updateRejectDetails(jobId) {
 }
 
 // ---------------------------------------------------------------------------
+// Admin helpers (UC13 / UC14)
+
+function setupAdminPage() {
+  const tableBody = document.getElementById("userTableBody");
+  const form = document.getElementById("userForm");
+  if (!tableBody || !form) {
+    return;
+  }
+
+  if (!APP_STATE.adminUi) {
+    APP_STATE.adminUi = { mode: "add", selectedUsername: null };
+  }
+
+  renderAdminUserTable();
+  resetAdminForm();
+
+  tableBody.addEventListener("click", handleAdminTableClick);
+  form.addEventListener("submit", handleAdminFormSubmit);
+
+  const cancelBtn = document.getElementById("userCancelButton");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", function () {
+      if (APP_STATE.adminUi.mode === "edit" && APP_STATE.adminUi.selectedUsername) {
+        loadAdminUserIntoForm(APP_STATE.adminUi.selectedUsername);
+      } else {
+        resetAdminForm();
+      }
+    });
+  }
+
+  const newBtn = document.getElementById("userNewButton");
+  if (newBtn) {
+    newBtn.addEventListener("click", function () {
+      resetAdminForm();
+    });
+  }
+
+  const deleteBtn = document.getElementById("userDeleteButton");
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", handleAdminDelete);
+  }
+}
+
+function handleAdminTableClick(event) {
+  const row = event.target.closest("tr[data-username]");
+  if (!row) {
+    return;
+  }
+  const username = row.getAttribute("data-username");
+  if (username) {
+    loadAdminUserIntoForm(username);
+  }
+}
+
+function renderAdminUserTable() {
+  const tableBody = document.getElementById("userTableBody");
+  if (!tableBody) {
+    return;
+  }
+
+  const users = Array.isArray(APP_STATE.data && APP_STATE.data.users)
+    ? APP_STATE.data.users.slice()
+    : [];
+
+  if (users.length === 0) {
+    tableBody.innerHTML =
+      '<tr class="table-empty"><td colspan="5">No users found.</td></tr>';
+    return;
+  }
+
+  users.sort(function (a, b) {
+    const left = (a.name || a.username || "").toLowerCase();
+    const right = (b.name || b.username || "").toLowerCase();
+    if (left < right) {
+      return -1;
+    }
+    if (left > right) {
+      return 1;
+    }
+    return 0;
+  });
+
+  const rows = users
+    .map(function (user) {
+      const statusText = user.status === "inactive" ? "Inactive" : "Active";
+      const statusClass =
+        user.status === "inactive" ? "status-pill status-pill--alert" : "status-pill status-pill--calm";
+      return (
+        '<tr data-username="' +
+        escapeHtml(user.username || "") +
+        '"><td>' +
+        escapeHtml(user.name || "(no name)") +
+        '<div class="hint">@' +
+        escapeHtml(user.username || "unknown") +
+        "</div></td><td>" +
+        escapeHtml(user.email || "not provided") +
+        "</td><td>" +
+        escapeHtml(formatRoleLabel(user.role)) +
+        "</td><td>" +
+        escapeHtml(user.department || "-") +
+        "</td><td><span class=\"" +
+        statusClass +
+        '">' +
+        statusText +
+        "</span></td></tr>"
+      );
+    })
+    .join("\n");
+
+  tableBody.innerHTML = rows;
+  highlightAdminSelectedRow(APP_STATE.adminUi.selectedUsername);
+}
+
+function highlightAdminSelectedRow(username) {
+  const tableBody = document.getElementById("userTableBody");
+  if (!tableBody) {
+    return;
+  }
+
+  Array.prototype.forEach.call(tableBody.querySelectorAll("tr"), function (row) {
+    row.classList.remove("is-selected");
+    if (username && row.getAttribute("data-username") === username) {
+      row.classList.add("is-selected");
+    }
+  });
+}
+
+function resetAdminForm() {
+  const form = document.getElementById("userForm");
+  if (!form) {
+    return;
+  }
+
+  form.reset();
+  APP_STATE.adminUi.mode = "add";
+  APP_STATE.adminUi.selectedUsername = null;
+  setAdminFormStatus("Enter details for the new user.", null);
+
+  const modeLabel = document.getElementById("userModeLabel");
+  if (modeLabel) {
+    modeLabel.value = "Add new user";
+  }
+
+  const statusSelect = document.getElementById("userStatusSelect");
+  if (statusSelect) {
+    statusSelect.value = "active";
+  }
+
+  const passwordInput = document.getElementById("userPasswordInput");
+  if (passwordInput) {
+    passwordInput.value = "";
+    passwordInput.placeholder = "required when adding";
+  }
+
+  const selectedInput = document.getElementById("userSelectedUsername");
+  if (selectedInput) {
+    selectedInput.value = "";
+  }
+
+  const deleteBtn = document.getElementById("userDeleteButton");
+  if (deleteBtn) {
+    deleteBtn.disabled = true;
+  }
+
+  highlightAdminSelectedRow(null);
+}
+
+function loadAdminUserIntoForm(username) {
+  const form = document.getElementById("userForm");
+  if (!form) {
+    return;
+  }
+
+  const user = findUserRecord(username);
+  if (!user) {
+    setAdminFormStatus("User not found. Refresh the table.", "error");
+    resetAdminForm();
+    return;
+  }
+
+  APP_STATE.adminUi.mode = "edit";
+  APP_STATE.adminUi.selectedUsername = user.username;
+
+  const modeLabel = document.getElementById("userModeLabel");
+  if (modeLabel) {
+    modeLabel.value = "Editing @" + (user.username || "");
+  }
+
+  document.getElementById("userNameInput").value = user.name || "";
+  document.getElementById("userEmailInput").value = user.email || "";
+  document.getElementById("userUsernameInput").value = user.username || "";
+  document.getElementById("userDeptInput").value = user.department || "";
+  document.getElementById("userRoleSelect").value = user.role || "staff";
+  document.getElementById("userStatusSelect").value = user.status === "inactive" ? "inactive" : "active";
+  document.getElementById("userNotesInput").value = user.notes || "";
+
+  const passwordInput = document.getElementById("userPasswordInput");
+  if (passwordInput) {
+    passwordInput.value = "";
+    passwordInput.placeholder = "Leave blank to keep current password";
+  }
+
+  const selectedInput = document.getElementById("userSelectedUsername");
+  if (selectedInput) {
+    selectedInput.value = user.username || "";
+  }
+
+  const deleteBtn = document.getElementById("userDeleteButton");
+  if (deleteBtn) {
+    deleteBtn.disabled = false;
+  }
+
+  highlightAdminSelectedRow(user.username || "");
+  setAdminFormStatus("Editing user " + (user.username || ""), null);
+}
+
+function handleAdminFormSubmit(event) {
+  event.preventDefault();
+
+  const mode = APP_STATE.adminUi.mode === "edit" ? "edit" : "add";
+  const currentUsername = APP_STATE.adminUi.selectedUsername || null;
+
+  const validation = validateAdminUserInput(collectAdminFormData(), mode, currentUsername);
+  if (!validation.ok) {
+    setAdminFormStatus(validation.message, "error");
+    return;
+  }
+
+  try {
+    const sanitized = validation.data;
+    let resultingUsername;
+    if (mode === "add") {
+      resultingUsername = addAdminUser(sanitized);
+    } else {
+      resultingUsername = updateAdminUser(currentUsername, sanitized);
+    }
+    persistData();
+    renderAdminUserTable();
+    loadAdminUserIntoForm(resultingUsername);
+    setAdminFormStatus(
+      mode === "add" ? "User added successfully." : "User updated successfully.",
+      "ok"
+    );
+  } catch (err) {
+    console.error("Failed to save user", err);
+    setAdminFormStatus("System error while saving user. Please try again.", "error");
+  }
+}
+
+function handleAdminDelete() {
+  const username = APP_STATE.adminUi.selectedUsername;
+  if (!username) {
+    setAdminFormStatus("Select a user before deleting.", "error");
+    return;
+  }
+
+  if (!window.confirm("Delete user @" + username + "? This action cannot be undone.")) {
+    return;
+  }
+
+  if (!deleteAdminUser(username)) {
+    setAdminFormStatus("Unable to delete user. Please refresh and try again.", "error");
+    return;
+  }
+
+  persistData();
+  renderAdminUserTable();
+  resetAdminForm();
+  setAdminFormStatus("User deleted successfully.", "ok");
+}
+
+function collectAdminFormData() {
+  const nameInput = document.getElementById("userNameInput");
+  const emailInput = document.getElementById("userEmailInput");
+  const usernameInput = document.getElementById("userUsernameInput");
+  const passwordInput = document.getElementById("userPasswordInput");
+  const roleSelect = document.getElementById("userRoleSelect");
+  const deptInput = document.getElementById("userDeptInput");
+  const notesInput = document.getElementById("userNotesInput");
+  const statusSelect = document.getElementById("userStatusSelect");
+
+  return {
+    name: (nameInput && nameInput.value ? nameInput.value : "").trim(),
+    email: (emailInput && emailInput.value ? emailInput.value : "").trim(),
+    username: (usernameInput && usernameInput.value ? usernameInput.value : "").trim(),
+    password: passwordInput && passwordInput.value ? passwordInput.value : "",
+    role: roleSelect && roleSelect.value ? roleSelect.value : "staff",
+    department: (deptInput && deptInput.value ? deptInput.value : "").trim(),
+    notes: (notesInput && notesInput.value ? notesInput.value : "").trim(),
+    status: statusSelect && statusSelect.value ? statusSelect.value : "active"
+  };
+}
+
+function validateAdminUserInput(formData, mode, currentUsername) {
+  const sanitized = {
+    name: formData.name,
+    email: (formData.email || "").trim(),
+    username: formData.username,
+    password: formData.password.trim(),
+    role: formData.role,
+    department: formData.department,
+    notes: formData.notes,
+    status: formData.status === "inactive" ? "inactive" : "active"
+  };
+
+  if (!sanitized.name || !sanitized.email || !sanitized.username || !sanitized.role || !sanitized.department) {
+    return { ok: false, message: "All required fields (name, email, username, role, department) must be filled." };
+  }
+
+  const namePattern = /^[A-Za-z][A-Za-z\s'.-]*$/;
+  if (!namePattern.test(sanitized.name)) {
+    return { ok: false, message: "Name should only contain letters, spaces, apostrophes, or hyphens." };
+  }
+
+  const normalizedEmail = sanitized.email.toLowerCase();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(sanitized.email)) {
+    return { ok: false, message: "Provide a valid email address." };
+  }
+
+  if (mode === "add" && sanitized.password.length < 4) {
+    return { ok: false, message: "Password must be at least 4 characters for new users." };
+  }
+
+  const users = Array.isArray(APP_STATE.data && APP_STATE.data.users)
+    ? APP_STATE.data.users
+    : [];
+  const normalizedCurrent = currentUsername ? currentUsername.toLowerCase() : null;
+
+  const usernameConflict = users.some(function (user) {
+    if (!user.username) {
+      return false;
+    }
+    const normalized = user.username.toLowerCase();
+    if (normalizedCurrent && normalized === normalizedCurrent) {
+      return false;
+    }
+    return normalized === sanitized.username.toLowerCase();
+  });
+  if (usernameConflict) {
+    return { ok: false, message: "Username already exists. Choose another username." };
+  }
+
+  const emailConflict = users.some(function (user) {
+    if (!user.email) {
+      return false;
+    }
+    if (normalizedCurrent && user.username && user.username.toLowerCase() === normalizedCurrent) {
+      return false;
+    }
+    return user.email.toLowerCase() === normalizedEmail;
+  });
+  if (emailConflict) {
+    return { ok: false, message: "Email already exists. Provide a different email address." };
+  }
+
+  return { ok: true, data: sanitized };
+}
+
+function addAdminUser(data) {
+  if (!APP_STATE.data.users) {
+    APP_STATE.data.users = [];
+  }
+  const record = {
+    username: data.username,
+    password: data.password,
+    role: data.role,
+    name: data.name,
+    email: data.email,
+    department: data.department,
+    status: data.status,
+    notes: data.notes,
+    createdAt: new Date().toISOString()
+  };
+  APP_STATE.data.users.push(record);
+  APP_STATE.adminUi.mode = "edit";
+  APP_STATE.adminUi.selectedUsername = record.username;
+  return record.username;
+}
+
+function updateAdminUser(originalUsername, data) {
+  const user = findUserRecord(originalUsername);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  user.name = data.name;
+  user.email = data.email;
+  user.department = data.department;
+  user.role = data.role;
+  user.status = data.status;
+  user.notes = data.notes;
+  if (data.password) {
+    user.password = data.password;
+  }
+  const normalizedOriginal = originalUsername ? originalUsername.toLowerCase() : null;
+  if (!normalizedOriginal || normalizedOriginal !== data.username.toLowerCase()) {
+    user.username = data.username;
+    APP_STATE.adminUi.selectedUsername = data.username;
+  }
+  user.updatedAt = new Date().toISOString();
+  APP_STATE.adminUi.mode = "edit";
+  return user.username;
+}
+
+function deleteAdminUser(username) {
+  if (!username || !APP_STATE.data || !Array.isArray(APP_STATE.data.users)) {
+    return false;
+  }
+
+  const normalized = username.toLowerCase();
+  const users = APP_STATE.data.users;
+  const index = users.findIndex(function (user) {
+    return (user.username || "").toLowerCase() === normalized;
+  });
+
+  if (index < 0) {
+    return false;
+  }
+
+  users.splice(index, 1);
+  return true;
+}
+
+function findUserRecord(username) {
+  if (!username) {
+    return null;
+  }
+  const users = Array.isArray(APP_STATE.data && APP_STATE.data.users)
+    ? APP_STATE.data.users
+    : [];
+  const normalized = username.toLowerCase();
+  return (
+    users.find(function (user) {
+      return (user.username || "").toLowerCase() === normalized;
+    }) || null
+  );
+}
+
+function setAdminFormStatus(message, state) {
+  const box = document.getElementById("userFormStatus");
+  if (!box) {
+    return;
+  }
+
+  box.textContent = message || "";
+  box.classList.remove("form-status--ok", "form-status--error");
+  if (!message) {
+    return;
+  }
+
+  if (state === "ok") {
+    box.classList.add("form-status--ok");
+  } else if (state === "error") {
+    box.classList.add("form-status--error");
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Utility helpers
 
 function formatDateLabel(dateStr) {
@@ -1222,3 +1689,37 @@ function formatDateLabel(dateStr) {
   }
   return dateStr;
 }
+
+function formatRoleLabel(role) {
+  switch (role) {
+    case "manager":
+      return "Manager";
+    case "admin":
+      return "Administrator";
+    default:
+      return "Staff";
+  }
+}
+
+function escapeHtml(value) {
+  if (value === undefined || value === null) {
+    return "";
+  }
+  return String(value).replace(/[&<>\"']/g, function (char) {
+    switch (char) {
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      case "'":
+        return "&#39;";
+      default:
+        return char;
+    }
+  });
+}
+

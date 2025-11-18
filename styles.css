@@ -67,6 +67,33 @@ textarea {
   min-height: 60px;
 }
 
+.input-readonly {
+  background: #f4f4f4;
+  border: 1px dashed #cfcfcf;
+  color: #666;
+}
+
+.form-status {
+  font-size: 11px;
+  margin: 8px 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  min-height: 18px;
+}
+
+.form-status--ok {
+  border-color: #5aa88c;
+  background: #f0fff7;
+  color: #215c3d;
+}
+
+.form-status--error {
+  border-color: #c98946;
+  background: #fff7ef;
+  color: #5c2d09;
+}
+
 .tag {
   border-radius: 16px;
   border: 1px dashed #bbb;
@@ -211,6 +238,11 @@ p {
   background: #f3f3f3;
 }
 
+.btn-xs {
+  font-size: 10px;
+  padding: 4px 6px;
+}
+
 .btn-danger {
   border-color: #b66;
   background: #f7e3e3;
@@ -269,6 +301,16 @@ p {
   font-size: 11px;
   background: #fdfdfd;
   margin-top: 4px;
+}
+
+.table-empty td {
+  text-align: center;
+  font-style: italic;
+  color: #777;
+}
+
+.table tr.is-selected {
+  background: #eef5ff;
 }
 
 .list-placeholder {
