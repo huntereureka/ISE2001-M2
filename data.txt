@@ -1,49 +1,71 @@
 {
-  "version": "2",
+  "version": "3",
   "users": [
-    { "username": "staff", "password": "staff", "role": "staff", "name": "Jamie Tan", "profileId": "staffA" },
-    { "username": "user", "password": "user", "role": "staff", "name": "Staff A (Demo)", "profileId": "staffA" },
-    { "username": "manager", "password": "manager", "role": "manager", "name": "Alex Lee" },
-    { "username": "admin", "password": "admin", "role": "admin", "name": "Priya Nair" }
+    {
+      "username": "staff",
+      "password": "staff",
+      "role": "staff",
+      "name": "Jamie Tan",
+      "profileId": "staffA"
+    },
+    {
+      "username": "user",
+      "password": "user",
+      "role": "staff",
+      "name": "Staff A (Demo)",
+      "profileId": "staffA"
+    },
+    {
+      "username": "manager",
+      "password": "manager",
+      "role": "manager",
+      "name": "Alex Lee"
+    },
+    {
+      "username": "admin",
+      "password": "admin",
+      "role": "admin",
+      "name": "Priya Nair"
+    }
   ],
   "jobs": [
     {
       "id": "JOB-123",
-      "title": "Site Inspection",
+      "title": "SG > JB (Morning Shuttle)",
       "date": "2025-09-15",
       "duration": 4,
-      "location": "Site Alpha",
-      "description": "Inspect perimeter lighting and report issues.",
+      "location": "",
+      "description": "Drive passengers from Singapore depot to Johor Bahru checkpoint and return empty.",
       "status": "unassigned",
       "assignedTo": null
     },
     {
       "id": "JOB-126",
-      "title": "Day Patrol",
+      "title": "SG > JB Express",
       "date": "2025-09-16",
       "duration": 8,
-      "location": "Site Beta",
-      "description": "Patrol and log incidents across checkpoints.",
+      "location": "",
+      "description": "Full-day express service between Singapore and Johor Bahru terminals.",
       "status": "unassigned",
       "assignedTo": null
     },
     {
       "id": "JOB-130",
-      "title": "Event Coverage",
+      "title": "KL > JB Relief",
       "date": "2025-09-18",
       "duration": 6,
-      "location": "City Arena",
-      "description": "Provide support during the stadium event.",
+      "location": "",
+      "description": "Relief driver for Kuala Lumpur to Johor Bahru evening route.",
       "status": "unassigned",
       "assignedTo": null
     },
     {
       "id": "JOB-150",
-      "title": "Site A Patrol",
+      "title": "JB > SG Evening Run",
       "date": "2025-09-10",
       "duration": 8,
-      "location": "Site A",
-      "description": "Day patrol and reporting duties for Site A.",
+      "location": "",
+      "description": "Assigned evening return trip from Johor Bahru to Singapore checkpoints.",
       "status": "assigned",
       "assignedTo": "staffA"
     }
@@ -61,30 +83,66 @@
       "monthlyWorkload": {
         "September": {
           "weeks": [
-            { "label": "Week 1", "hours": 32 },
-            { "label": "Week 2", "hours": 28 },
-            { "label": "Week 3", "hours": 30 },
-            { "label": "Week 4", "hours": 30 }
+            {
+              "label": "Week 1",
+              "hours": 32
+            },
+            {
+              "label": "Week 2",
+              "hours": 28
+            },
+            {
+              "label": "Week 3",
+              "hours": 30
+            },
+            {
+              "label": "Week 4",
+              "hours": 30
+            }
           ],
           "totalHours": 120
         },
         "October": {
           "weeks": [
-            { "label": "Week 1", "hours": 20 },
-            { "label": "Week 2", "hours": 24 },
-            { "label": "Week 3", "hours": 18 },
-            { "label": "Week 4", "hours": 22 }
+            {
+              "label": "Week 1",
+              "hours": 20
+            },
+            {
+              "label": "Week 2",
+              "hours": 24
+            },
+            {
+              "label": "Week 3",
+              "hours": 18
+            },
+            {
+              "label": "Week 4",
+              "hours": 22
+            }
           ],
           "totalHours": 84
         }
       },
       "availabilityEntries": [
-        { "week": "Week of 01-07", "day": "Monday", "start": "09:00", "end": "17:00", "notes": "" }
+        {
+          "week": "Week of 01-07",
+          "day": "Monday",
+          "start": "09:00",
+          "end": "17:00",
+          "notes": "",
+          "entryId": "staffA-avail-01"
+        }
       ],
-      "preferenceNotes": {
-        "jobTypes": "Night shifts, events, indoors",
-        "locations": "City Centre, Site B"
-      }
+      "preferenceEntries": [
+        {
+          "entryId": "pref-001",
+          "week": "Week of 01-07",
+          "jobTypes": "Night shifts, events, indoors",
+          "locations": "City Centre, Site B",
+          "updatedAt": "2025-11-18T09:43:20.976342Z"
+        }
+      ]
     },
     {
       "id": "staffB",
@@ -98,19 +156,36 @@
       "monthlyWorkload": {
         "September": {
           "weeks": [
-            { "label": "Week 1", "hours": 36 },
-            { "label": "Week 2", "hours": 38 },
-            { "label": "Week 3", "hours": 34 },
-            { "label": "Week 4", "hours": 40 }
+            {
+              "label": "Week 1",
+              "hours": 36
+            },
+            {
+              "label": "Week 2",
+              "hours": 38
+            },
+            {
+              "label": "Week 3",
+              "hours": 34
+            },
+            {
+              "label": "Week 4",
+              "hours": 40
+            }
           ],
           "totalHours": 148
         }
       },
       "availabilityEntries": [],
-      "preferenceNotes": {
-        "jobTypes": "High-security shifts",
-        "locations": "Site Beta"
-      }
+      "preferenceEntries": [
+        {
+          "entryId": "pref-002",
+          "week": "Week of 01-07",
+          "jobTypes": "High-security shifts",
+          "locations": "Site Beta",
+          "updatedAt": "2025-11-18T09:43:20.976342Z"
+        }
+      ]
     },
     {
       "id": "staffC",
@@ -124,19 +199,36 @@
       "monthlyWorkload": {
         "September": {
           "weeks": [
-            { "label": "Week 1", "hours": 18 },
-            { "label": "Week 2", "hours": 16 },
-            { "label": "Week 3", "hours": 12 },
-            { "label": "Week 4", "hours": 10 }
+            {
+              "label": "Week 1",
+              "hours": 18
+            },
+            {
+              "label": "Week 2",
+              "hours": 16
+            },
+            {
+              "label": "Week 3",
+              "hours": 12
+            },
+            {
+              "label": "Week 4",
+              "hours": 10
+            }
           ],
           "totalHours": 56
         }
       },
       "availabilityEntries": [],
-      "preferenceNotes": {
-        "jobTypes": "Day patrols",
-        "locations": "Flexible"
-      }
+      "preferenceEntries": [
+        {
+          "entryId": "pref-003",
+          "week": "Week of 01-07",
+          "jobTypes": "Day patrols",
+          "locations": "Flexible",
+          "updatedAt": "2025-11-18T09:43:20.976342Z"
+        }
+      ]
     },
     {
       "id": "staffE",
@@ -150,19 +242,36 @@
       "monthlyWorkload": {
         "September": {
           "weeks": [
-            { "label": "Week 1", "hours": 10 },
-            { "label": "Week 2", "hours": 12 },
-            { "label": "Week 3", "hours": 14 },
-            { "label": "Week 4", "hours": 8 }
+            {
+              "label": "Week 1",
+              "hours": 10
+            },
+            {
+              "label": "Week 2",
+              "hours": 12
+            },
+            {
+              "label": "Week 3",
+              "hours": 14
+            },
+            {
+              "label": "Week 4",
+              "hours": 8
+            }
           ],
           "totalHours": 44
         }
       },
       "availabilityEntries": [],
-      "preferenceNotes": {
-        "jobTypes": "Events",
-        "locations": "City Centre"
-      }
+      "preferenceEntries": [
+        {
+          "entryId": "pref-004",
+          "week": "Week of 01-07",
+          "jobTypes": "Events",
+          "locations": "City Centre",
+          "updatedAt": "2025-11-18T09:43:20.976342Z"
+        }
+      ]
     }
   ]
 }

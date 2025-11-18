@@ -108,6 +108,8 @@
                     <option>Week of 01-07</option>
                     <option>Week of 08-14</option>
                     <option>Week of 15-21</option>
+                    <option>Week of 22-28</option>
+                    <option>Week of 29-05</option>
                   </select>
                 </div>
                 <div class="field">
@@ -156,13 +158,25 @@
               </div>
 
               <div class="field-group">
-                <span class="label">Preferred Locations</span>
-                <input id="preferenceLocations" type="text" placeholder="e.g. City Centre, Site B" />
+                <span class="label">Preferred Routes / Corridors</span>
+                <input id="preferenceLocations" type="text" placeholder="e.g. SG > JB express, KL loop" />
               </div>
 
               <div class="button-row">
                 <button type="submit" class="btn">Submit</button>
                 <button type="button" class="btn btn-secondary" id="availabilityCancelBtn">Clear</button>
+              </div>
+
+              <div id="availabilityStatus" class="form-status"></div>
+
+              <div class="section-label">Saved Availability (selected week)</div>
+              <div class="list-placeholder" id="availabilityList">
+                Select a week to view saved availability.
+              </div>
+
+              <div class="section-label">Saved Preference (selected week)</div>
+              <div class="list-placeholder" id="preferenceSummary">
+                No preference saved for this week.
               </div>
             </form>
           </div>

@@ -42,13 +42,18 @@ const UI_STRINGS = {
   }
 };
 
-const DATA_VERSION = "2";
+const DATA_VERSION = "3";
 
 const APP_STATE = {
   data: null,
   adminUi: {
     mode: "add",
     selectedUsername: null
+  },
+  staffUi: {
+    currentProfileId: null,
+    selectedWeek: null,
+    editingAvailabilityId: null
   }
 };
 
@@ -99,6 +104,8 @@ async function ensureDataLoaded() {
       const parsed = JSON.parse(stored);
       if (!dataNeedsBootstrap(parsed)) {
         APP_STATE.data = parsed;
+        APP_STATE.data.version = DATA_VERSION;
+        persistData();
         return APP_STATE.data;
       }
       window.localStorage.removeItem("appData");
@@ -110,9 +117,10 @@ async function ensureDataLoaded() {
   try {
     const text = await fetchDataFromFile();
     APP_STATE.data = JSON.parse(text);
+    APP_STATE.data.version = DATA_VERSION;
     persistData();
   } catch (err) {
-    APP_STATE.data = { users: [], jobs: [], staffProfiles: [] };
+    APP_STATE.data = { version: DATA_VERSION, users: [], jobs: [], staffProfiles: [] };
   }
 
   return APP_STATE.data;
@@ -128,6 +136,7 @@ async function fetchDataFromFile() {
 
 function persistData() {
   if (APP_STATE.data) {
+    APP_STATE.data.version = DATA_VERSION;
     window.localStorage.setItem("appData", JSON.stringify(APP_STATE.data));
   }
 }
@@ -668,7 +677,7 @@ function populateJobSelect(selectEl, jobs, filterFn) {
   jobs.filter(filterFn).forEach(function (job) {
     const option = document.createElement("option");
     option.value = job.id;
-    option.textContent = job.id + " — " + job.title + " (" + (job.location || "Location TBD") + ")";
+    option.textContent = formatJobLabel(job);
     selectEl.appendChild(option);
   });
 
@@ -695,16 +704,7 @@ function renderUnassignedJobs() {
   list.innerHTML = "";
   jobs.forEach(function (job) {
     const li = document.createElement("li");
-    li.textContent =
-      job.id +
-      " — " +
-      job.title +
-      ", " +
-      job.duration +
-      "h (" +
-      job.date +
-      ") at " +
-      (job.location || "Location TBD");
+    li.textContent = formatJobLabel(job);
     list.appendChild(li);
   });
 }
@@ -871,6 +871,137 @@ function updateStaffWorkloadHours(staffId, delta) {
   staff.workloadHours = Math.max(nextValue, 0);
 }
 
+const DAY_SEQUENCE = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+function dayIndex(day) {
+  const idx = DAY_SEQUENCE.indexOf(day);
+  return idx === -1 ? DAY_SEQUENCE.length : idx;
+}
+
+function ensureAvailabilityEntryIds(profile) {
+  if (!Array.isArray(profile.availabilityEntries)) {
+    profile.availabilityEntries = [];
+  }
+
+  profile.availabilityEntries.forEach(function (entry) {
+    if (!entry.entryId) {
+      entry.entryId = generateId("avail");
+    }
+  });
+}
+
+function ensurePreferenceEntries(profile) {
+  if (!Array.isArray(profile.preferenceEntries)) {
+    profile.preferenceEntries = [];
+  }
+
+  if (!profile.preferenceEntries.length && profile.preferenceNotes) {
+    profile.preferenceEntries.push({
+      entryId: generateId("pref"),
+      week: profile.preferenceNotes.week || "Week of 01-07",
+      jobTypes: profile.preferenceNotes.jobTypes || "",
+      locations: profile.preferenceNotes.locations || "",
+      updatedAt: new Date().toISOString()
+    });
+  }
+
+  profile.preferenceEntries.forEach(function (entry) {
+    if (!entry.entryId) {
+      entry.entryId = generateId("pref");
+    }
+  });
+
+  if (profile.preferenceNotes) {
+    delete profile.preferenceNotes;
+  }
+}
+
+function getAvailabilityEntriesForWeek(profile, week) {
+  return (profile.availabilityEntries || []).filter(function (entry) {
+    return entry.week === week;
+  });
+}
+
+function sortAvailabilityEntries(entries) {
+  return entries.slice().sort(function (a, b) {
+    const dayDiff = dayIndex(a.day) - dayIndex(b.day);
+    if (dayDiff !== 0) {
+      return dayDiff;
+    }
+    const startDiff = parseTimeToMinutes(a.start) - parseTimeToMinutes(b.start);
+    if (!Number.isNaN(startDiff) && startDiff !== 0) {
+      return startDiff;
+    }
+    return (a.start || "").localeCompare(b.start || "");
+  });
+}
+
+function parseTimeToMinutes(value) {
+  if (!value) {
+    return NaN;
+  }
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value.trim());
+  if (!match) {
+    return NaN;
+  }
+  return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+}
+
+function hasAvailabilityOverlap(profile, candidate, ignoreEntryId) {
+  const candidateStart = parseTimeToMinutes(candidate.start);
+  const candidateEnd = parseTimeToMinutes(candidate.end);
+
+  return (profile.availabilityEntries || []).some(function (entry) {
+    if (entry.week !== candidate.week || entry.day !== candidate.day) {
+      return false;
+    }
+    if (ignoreEntryId && entry.entryId === ignoreEntryId) {
+      return false;
+    }
+
+    const existingStart = parseTimeToMinutes(entry.start);
+    const existingEnd = parseTimeToMinutes(entry.end);
+    if (Number.isNaN(existingStart) || Number.isNaN(existingEnd)) {
+      return false;
+    }
+
+    return Math.max(candidateStart, existingStart) < Math.min(candidateEnd, existingEnd);
+  });
+}
+
+function getPreferenceEntryForWeek(profile, week) {
+  if (!Array.isArray(profile.preferenceEntries)) {
+    return null;
+  }
+  return (
+    profile.preferenceEntries.find(function (entry) {
+      return entry.week === week;
+    }) || null
+  );
+}
+
+function savePreferenceForWeek(profile, week, jobTypes, locations) {
+  profile.preferenceEntries = profile.preferenceEntries || [];
+  let entry = getPreferenceEntryForWeek(profile, week);
+  if (!entry) {
+    entry = {
+      entryId: generateId("pref"),
+      week: week,
+      jobTypes: "",
+      locations: ""
+    };
+    profile.preferenceEntries.push(entry);
+  }
+
+  entry.jobTypes = jobTypes;
+  entry.locations = locations;
+  entry.updatedAt = new Date().toISOString();
+}
+
+function generateId(prefix) {
+  return prefix + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+}
+
 // ---------------------------------------------------------------------------
 // Staff page interactions
 
@@ -887,6 +1018,13 @@ function setupStaffPage(sessionUser) {
     }
     return;
   }
+
+  ensureAvailabilityEntryIds(profile);
+  ensurePreferenceEntries(profile);
+  APP_STATE.staffUi = APP_STATE.staffUi || {};
+  APP_STATE.staffUi.currentProfileId = profile.id;
+  APP_STATE.staffUi.selectedWeek = null;
+  APP_STATE.staffUi.editingAvailabilityId = null;
 
   renderStaffAssignments(profile);
   renderMonthlySummary(profile);
@@ -983,17 +1121,11 @@ function showJobDetails(jobId) {
     alert("Job not found.");
     return;
   }
-  alert(
-    job.title +
-      "\nDate: " +
-      job.date +
-      "\nLocation: " +
-      job.location +
-      "\nDuration: " +
-      job.duration +
-      "h\nDescription: " +
-      job.description
-  );
+  let message = formatJobLabel(job) + "\nDuration: " + (job.duration || "?") + "h";
+  if (job.description) {
+    message += "\nDetails: " + job.description;
+  }
+  alert(message);
 }
 
 function handleJobAcceptance(jobId, profile) {
@@ -1048,7 +1180,7 @@ function populateRejectSelect(assignments) {
     .forEach(function (job) {
       const option = document.createElement("option");
       option.value = job.id;
-      option.textContent = job.id + " — " + job.title + " (" + formatDateLabel(job.date) + ")";
+      option.textContent = formatJobLabel(job);
       select.appendChild(option);
     });
 
@@ -1093,45 +1225,290 @@ function renderMonthlySummary(profile) {
 function setupAvailabilityForm(profile) {
   const form = document.getElementById("availabilityForm");
   const cancelBtn = document.getElementById("availabilityCancelBtn");
-  if (!form) {
+  const weekSelect = document.getElementById("availabilityWeek");
+  const modeSelect = document.getElementById("availabilityMode");
+  const daySelect = document.getElementById("availabilityDay");
+  const startInput = document.getElementById("availabilityStart");
+  const endInput = document.getElementById("availabilityEnd");
+  const notesInput = document.getElementById("availabilityNotes");
+  const prefTypesInput = document.getElementById("preferenceTypes");
+  const prefLocationsInput = document.getElementById("preferenceLocations");
+  const statusBox = document.getElementById("availabilityStatus");
+  const listContainer = document.getElementById("availabilityList");
+  const preferenceSummary = document.getElementById("preferenceSummary");
+
+  if (
+    !form ||
+    !weekSelect ||
+    !modeSelect ||
+    !daySelect ||
+    !startInput ||
+    !endInput ||
+    !prefTypesInput ||
+    !prefLocationsInput ||
+    !statusBox ||
+    !listContainer ||
+    !preferenceSummary
+  ) {
     return;
   }
 
-  if (profile.preferenceNotes) {
-    document.getElementById("preferenceTypes").value = profile.preferenceNotes.jobTypes || "";
-    document.getElementById("preferenceLocations").value = profile.preferenceNotes.locations || "";
+  const allowedWeeks = Array.from(weekSelect.options).map(function (option) {
+    return option.value;
+  });
+
+  function setStatus(message, state) {
+    statusBox.textContent = message || "";
+    statusBox.classList.remove("form-status--ok", "form-status--error");
+    if (!message) {
+      return;
+    }
+    if (state === "ok") {
+      statusBox.classList.add("form-status--ok");
+    } else if (state === "error") {
+      statusBox.classList.add("form-status--error");
+    }
   }
 
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
-    const availabilityEntry = {
-      week: document.getElementById("availabilityWeek").value,
-      day: document.getElementById("availabilityDay").value,
-      start: document.getElementById("availabilityStart").value,
-      end: document.getElementById("availabilityEnd").value,
-      notes: document.getElementById("availabilityNotes").value
-    };
+  function clearAvailabilityInputs() {
+    startInput.value = "";
+    endInput.value = "";
+    notesInput.value = "";
+    APP_STATE.staffUi.editingAvailabilityId = null;
+  }
 
-    if (!availabilityEntry.start || !availabilityEntry.end) {
-      alert("Provide both start and end times.");
+  function renderAvailabilityListForWeek() {
+    const week = weekSelect.value;
+    const entries = sortAvailabilityEntries(getAvailabilityEntriesForWeek(profile, week));
+    if (!entries.length) {
+      listContainer.textContent = "No availability saved for this week.";
       return;
     }
 
-    profile.availabilityEntries = profile.availabilityEntries || [];
-    profile.availabilityEntries.push(availabilityEntry);
-    profile.preferenceNotes = {
-      jobTypes: document.getElementById("preferenceTypes").value,
-      locations: document.getElementById("preferenceLocations").value
+    listContainer.innerHTML = "";
+    entries.forEach(function (entry) {
+      const row = document.createElement("div");
+      row.className = "list-item";
+
+      const text = document.createElement("div");
+      const label =
+        "<strong>" +
+        escapeHtml(entry.day || "Day") +
+        "</strong> · " +
+        escapeHtml(entry.start || "?") +
+        " - " +
+        escapeHtml(entry.end || "?");
+      const note = entry.notes ? ' <span class="hint">' + escapeHtml(entry.notes) + "</span>" : "";
+      text.innerHTML = label + note;
+
+      const actions = document.createElement("div");
+      actions.className = "list-item-actions";
+      const loadBtn = document.createElement("button");
+      loadBtn.type = "button";
+      loadBtn.className = "btn btn-xs";
+      loadBtn.dataset.availabilityAction = "load";
+      loadBtn.dataset.entryId = entry.entryId;
+      loadBtn.textContent = "Load";
+      actions.appendChild(loadBtn);
+
+      row.appendChild(text);
+      row.appendChild(actions);
+      listContainer.appendChild(row);
+    });
+  }
+
+  function renderPreferenceSummaryBox() {
+    const week = weekSelect.value;
+    const entry = getPreferenceEntryForWeek(profile, week);
+    if (!entry || (!entry.jobTypes && !entry.locations)) {
+      preferenceSummary.textContent = "No preference saved for this week.";
+      return;
+    }
+
+    const types = entry.jobTypes || "Not specified";
+    const locations = entry.locations || "Not specified";
+    preferenceSummary.innerHTML =
+      "<strong>Preferred Job Types:</strong> " +
+      escapeHtml(types) +
+      "<br /><strong>Preferred Routes:</strong> " +
+      escapeHtml(locations);
+  }
+
+  function loadPreferenceInputsForWeek() {
+    const entry = getPreferenceEntryForWeek(profile, weekSelect.value);
+    prefTypesInput.value = entry ? entry.jobTypes || "" : "";
+    prefLocationsInput.value = entry ? entry.locations || "" : "";
+  }
+
+  function refreshWeekContext() {
+    APP_STATE.staffUi.selectedWeek = weekSelect.value;
+    APP_STATE.staffUi.editingAvailabilityId = null;
+    renderAvailabilityListForWeek();
+    renderPreferenceSummaryBox();
+    if (modeSelect.value === "Indicate Job Preference") {
+      loadPreferenceInputsForWeek();
+      setStatus("Updating preferences for " + weekSelect.value + ".", null);
+    } else if (modeSelect.value === "Edit Availability") {
+      setStatus("Select a saved availability entry to edit.", null);
+    } else {
+      setStatus("", null);
+    }
+  }
+
+  listContainer.addEventListener("click", function (event) {
+    const button = event.target.closest("button[data-availability-action]");
+    if (!button) {
+      return;
+    }
+    const entryId = button.getAttribute("data-entry-id");
+    if (!entryId) {
+      return;
+    }
+    const entry = (profile.availabilityEntries || []).find(function (item) {
+      return item.entryId === entryId;
+    });
+    if (!entry) {
+      return;
+    }
+
+    APP_STATE.staffUi.editingAvailabilityId = entry.entryId;
+    weekSelect.value = entry.week;
+    APP_STATE.staffUi.selectedWeek = entry.week;
+    daySelect.value = entry.day || daySelect.value;
+    startInput.value = entry.start || "";
+    endInput.value = entry.end || "";
+    notesInput.value = entry.notes || "";
+    modeSelect.value = "Edit Availability";
+    renderAvailabilityListForWeek();
+    renderPreferenceSummaryBox();
+    if (modeSelect.value === "Indicate Job Preference") {
+      loadPreferenceInputsForWeek();
+    }
+    setStatus("Loaded availability entry for editing.", null);
+  });
+
+  weekSelect.addEventListener("change", function () {
+    refreshWeekContext();
+  });
+
+  modeSelect.addEventListener("change", function () {
+    APP_STATE.staffUi.editingAvailabilityId = null;
+    if (modeSelect.value === "Indicate Job Preference") {
+      loadPreferenceInputsForWeek();
+      setStatus("Updating preferences for " + weekSelect.value + ".", null);
+    } else if (modeSelect.value === "Edit Availability") {
+      setStatus("Select a saved availability entry to edit.", null);
+    } else {
+      setStatus("", null);
+    }
+  });
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+    const mode = modeSelect.value;
+    const week = weekSelect.value;
+    if (allowedWeeks.indexOf(week) === -1) {
+      setStatus("Select a week within the planning window.", "error");
+      return;
+    }
+
+    if (mode === "Indicate Job Preference") {
+      const jobTypes = prefTypesInput.value.trim();
+      const locations = prefLocationsInput.value.trim();
+      if (!jobTypes && !locations) {
+        setStatus("Enter at least one preference detail.", "error");
+        return;
+      }
+      savePreferenceForWeek(profile, week, jobTypes, locations);
+      persistData();
+      renderPreferenceSummaryBox();
+      setStatus("Preferences saved for " + week + ".", "ok");
+      return;
+    }
+
+    const day = daySelect.value;
+    const start = startInput.value.trim();
+    const end = endInput.value.trim();
+    const notes = notesInput.value.trim();
+    if (!day || !start || !end) {
+      setStatus("Provide day, start time, and end time.", "error");
+      return;
+    }
+
+    const startMinutes = parseTimeToMinutes(start);
+    const endMinutes = parseTimeToMinutes(end);
+    if (Number.isNaN(startMinutes) || Number.isNaN(endMinutes)) {
+      setStatus("Use 24-hour HH:MM format for times.", "error");
+      return;
+    }
+    if (endMinutes <= startMinutes) {
+      setStatus("End time must be later than start time.", "error");
+      return;
+    }
+
+    if (mode === "Edit Availability" && !APP_STATE.staffUi.editingAvailabilityId) {
+      setStatus("Select an existing entry from the list before editing.", "error");
+      return;
+    }
+
+    const candidate = {
+      week: week,
+      day: day,
+      start: start,
+      end: end,
+      notes: notes
     };
+
+    const ignoreId = APP_STATE.staffUi.editingAvailabilityId || null;
+    if (hasAvailabilityOverlap(profile, candidate, ignoreId)) {
+      setStatus("This availability overlaps with an existing entry.", "error");
+      return;
+    }
+
+    if (mode === "Add Availability") {
+      candidate.entryId = generateId("avail");
+      profile.availabilityEntries.push(candidate);
+      setStatus("Availability added for " + day + " (" + week + ").", "ok");
+      clearAvailabilityInputs();
+    } else {
+      const target = (profile.availabilityEntries || []).find(function (entry) {
+        return entry.entryId === APP_STATE.staffUi.editingAvailabilityId;
+      });
+      if (!target) {
+        setStatus("Entry no longer available for editing. Reload the list.", "error");
+        return;
+      }
+      target.week = week;
+      target.day = day;
+      target.start = start;
+      target.end = end;
+      target.notes = notes;
+      target.updatedAt = new Date().toISOString();
+      APP_STATE.staffUi.editingAvailabilityId = null;
+      setStatus("Availability updated for " + day + " (" + week + ").", "ok");
+    }
+
     persistData();
-    alert("Availability and preferences saved (UC9-UC11 main flow).");
+    renderAvailabilityListForWeek();
   });
 
   if (cancelBtn) {
     cancelBtn.addEventListener("click", function () {
       form.reset();
+      if (APP_STATE.staffUi.selectedWeek) {
+        weekSelect.value = APP_STATE.staffUi.selectedWeek;
+      }
+      renderAvailabilityListForWeek();
+      renderPreferenceSummaryBox();
+      if (modeSelect.value === "Indicate Job Preference") {
+        loadPreferenceInputsForWeek();
+      }
+      APP_STATE.staffUi.editingAvailabilityId = null;
+      setStatus("Form cleared.", null);
     });
   }
+
+  refreshWeekContext();
 }
 
 function setupRejectForm(profile) {
@@ -1210,13 +1587,11 @@ function updateRejectDetails(jobId) {
 
   box.innerHTML =
     "<strong>" +
-    job.title +
-    "</strong><br />- Date/Time: " +
-    job.date +
-    "<br />- Location: " +
-    job.location +
-    "<br />- Description: " +
-    job.description +
+    formatJobLabel(job) +
+    "</strong><br />- Duration: " +
+    (job.duration || "?") +
+    "h<br />- Route Notes: " +
+    (job.description || "No additional notes.") +
     "<br />- Status: " +
     formatStatusLabel(job.status);
 }
@@ -1699,6 +2074,22 @@ function formatRoleLabel(role) {
     default:
       return "Staff";
   }
+}
+
+function formatJobLabel(job) {
+  if (!job) {
+    return "";
+  }
+
+  const title = job.title || "Route";
+  const duration = job.duration ? job.duration + "h" : "";
+  const date = job.date ? formatDateLabel(job.date) : "TBD";
+  const parts = [job.id || "JOB", "—", title];
+  if (duration) {
+    parts.push(", ", duration);
+  }
+  parts.push(" (", date, ")");
+  return parts.join("");
 }
 
 function escapeHtml(value) {
