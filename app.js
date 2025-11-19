@@ -415,7 +415,7 @@ function setupManagerPage() {
   if (skipBtn) {
     skipBtn.addEventListener("click", function (event) {
       event.preventDefault();
-      alert("Allocation recorded without availability check. (UC5 Alternative 4a)");
+      alert("Allocation recorded without availability check.");
     });
   }
 }
@@ -580,7 +580,7 @@ function createJob(values) {
   persistData();
   renderJobSelects();
   renderUnassignedJobs();
-  alert("Job created successfully (UC3 main flow).");
+  alert("Job created successfully.");
   clearJobForm();
 }
 
@@ -602,7 +602,7 @@ function updateJob(jobId, values) {
   persistData();
   renderJobSelects();
   renderUnassignedJobs();
-  alert("Job updated successfully (UC4 main flow).");
+  alert("Job updated successfully.");
 }
 
 function handleJobDelete() {
@@ -633,7 +633,7 @@ function handleJobDelete() {
   renderWorkloadTable();
   jobSelect.value = "";
   clearJobForm();
-  alert("Job deleted successfully (UC4 alternative 3a).");
+  alert("Job deleted successfully.");
 }
 
 function generateJobId() {
@@ -721,6 +721,7 @@ function renderStaffOptions() {
     populateStaffSelect(allocateSelect, staffList);
   }
 
+  ensureDefaultStaffCompareSelections(staffList);
   refreshStaffCompareSummaries();
 }
 
@@ -817,11 +818,11 @@ function handleJobAllocation() {
   const staffId = staffSelect.value;
 
   if (!jobId) {
-    alert("Select a job to allocate (UC5 alternative 7b).");
+    alert("Select a job to allocate.");
     return;
   }
   if (!staffId) {
-    alert("Select at least one staff member before submitting (UC5 alternative 7b).");
+    alert("Select at least one staff member before submitting.");
     return;
   }
 
@@ -845,7 +846,7 @@ function handleJobAllocation() {
     return;
   }
   if (!staff.eligible) {
-    alert("Selected staff is not eligible for this job (UC5 alternative 7a).");
+    alert("Selected staff is not eligible for this job.");
     return;
   }
 
@@ -857,7 +858,7 @@ function handleJobAllocation() {
   renderJobSelects();
   renderUnassignedJobs();
   renderWorkloadTable();
-  alert("Job allocated to " + staff.name + " (UC5 main flow).");
+  alert("Job allocated to " + staff.name + ".");
 }
 
 function updateStaffWorkloadHours(staffId, delta) {
@@ -869,6 +870,28 @@ function updateStaffWorkloadHours(staffId, delta) {
   }
   const nextValue = Number(staff.workloadHours || 0) + Number(delta || 0);
   staff.workloadHours = Math.max(nextValue, 0);
+}
+
+function ensureDefaultStaffCompareSelections(staffList) {
+  const defaults = ["staffA", "staffB", "staffC"];
+  const selects = document.querySelectorAll(".staff-compare");
+
+  defaults.forEach(function (preferredId, index) {
+    const select = selects[index];
+    if (!select || select.value) {
+      return;
+    }
+
+    const exists = staffList.some(function (staff) {
+      return staff.id === preferredId;
+    });
+
+    if (exists) {
+      select.value = preferredId;
+    } else if (staffList[index]) {
+      select.value = staffList[index].id;
+    }
+  });
 }
 
 const DAY_SEQUENCE = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -1144,7 +1167,7 @@ function handleJobAcceptance(jobId, profile) {
   job.status = "accepted";
   persistData();
   renderStaffAssignments(profile);
-  alert("Assignment accepted. (UC7 main flow)");
+  alert("Assignment accepted.");
 }
 
 function getAssignmentStatusClass(status) {
@@ -1554,7 +1577,7 @@ function setupRejectForm(profile) {
     select.value = "";
     document.getElementById("rejectReasonInput").value = "";
     updateRejectDetails("");
-    alert("Assignment rejected (UC12 main flow).");
+    alert("Assignment rejected.");
   });
 
   if (cancelBtn) {
