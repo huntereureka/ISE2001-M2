@@ -19,3 +19,5 @@ This repository contains the static assets for the Coach Company demo. You can p
 3. The command prints a local URL (typically `http://localhost:3000`). Open that URL in your browser to navigate the app (e.g., `/login.html`, `/manager.html`, `/staff.html`, `/admin.html`).
 
 Stop the server at any time with `Ctrl+C`. If you prefer a global install you can run `npm install -g serve` once and then invoke `serve` directly.
+
+Login information: for staff (user/user), manager (manager/manager), admin (admin/admin)
